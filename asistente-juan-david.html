@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Mi Asistente">
+<title>Asistente — Juan David</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0e0e0e;
+  --bg2: #171717;
+  --bg3: #1f1f1f;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.12);
+  --text: #f0ede8;
+  --text2: #888880;
+  --text3: #555550;
+  --accent: #c9a96e;
+  --accent2: rgba(201,169,110,0.12);
+  --success: #4a9e6a;
+  --success-bg: rgba(74,158,106,0.1);
+  --danger: #e05252;
+  --r: 10px;
+  --r2: 16px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { background: var(--bg); }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 0 0 100px;
+}
+
+/* NAV */
+.nav {
+  position: fixed;
+  bottom: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 480px;
+  background: var(--bg2);
+  border-top: 0.5px solid var(--border2);
+  display: flex;
+  padding: 12px 0 20px;
+  z-index: 100;
+}
+.nav-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 0;
+  color: var(--text3);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 10px;
+  transition: color 0.2s;
+}
+.nav-btn.active { color: var(--accent); }
+.nav-btn svg { width: 22px; height: 22px; stroke-width: 1.5; fill: none; stroke: currentColor; }
+
+/* SCREENS */
+.screen { display: none; padding: 0; }
+.screen.active { display: block; }
+
+/* HEADER */
+.header {
+  padding: 52px 24px 24px;
+  border-bottom: 0.5px solid var(--border);
+}
+.header-eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--text3);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.header-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 28px;
+  color: var(--text);
+  line-height: 1.2;
+  margin-bottom: 4px;
+}
+.header-sub { font-size: 13px; color: var(--text2); }
+
+/* CARDS */
+.card {
+  background: var(--bg2);
+  border: 0.5px solid var(--border);
+  border-radius: var(--r2);
+  padding: 16px 18px;
+  margin: 0 16px 12px;
+}
+.card-label {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--text3);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.section-gap { height: 24px; }
+.section-title {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--text3);
+  text-transform: uppercase;
+  padding: 0 20px;
+  margin-bottom: 10px;
+  margin-top: 24px;
+}
+
+/* BRIEFING */
+.briefing-text {
+  font-size: 15px;
+  line-height: 1.75;
+  color: var(--text);
+  font-weight: 300;
+}
+.briefing-text.loading { color: var(--text3); font-style: italic; }
+.briefing-accent {
+  display: inline-block;
+  background: var(--accent2);
+  color: var(--accent);
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 99px;
+  margin-bottom: 12px;
+  letter-spacing: 0.05em;
+}
+
+/* FOCO */
+.foco-card {
+  background: var(--accent2);
+  border: 0.5px solid rgba(201,169,110,0.2);
+  border-radius: var(--r2);
+  padding: 14px 18px;
+  margin: 0 16px 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.foco-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+.foco-text { font-size: 14px; color: var(--accent); font-weight: 500; }
+
+/* HABITS */
+.habits-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  padding: 0 16px;
+}
+.habit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 4px;
+  border-radius: var(--r);
+  border: 0.5px solid var(--border);
+  background: var(--bg2);
+  cursor: pointer;
+  transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.habit.done {
+  background: var(--success-bg);
+  border-color: rgba(74,158,106,0.3);
+}
+.habit svg { width: 20px; height: 20px; stroke: var(--text3); fill: none; stroke-width: 1.5; transition: stroke 0.2s; }
+.habit.done svg { stroke: var(--success); }
+.habit span { font-size: 9px; color: var(--text3); text-align: center; line-height: 1.2; transition: color 0.2s; }
+.habit.done span { color: var(--success); }
+
+/* TASKS */
+.tasks-list { list-style: none; padding: 0 16px; }
+.task-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 0.5px solid var(--border);
+}
+.task-item:last-child { border-bottom: none; }
+.task-check {
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  border: 0.5px solid var(--border2);
+  cursor: pointer;
+  flex-shrink: 0;
+  margin-top: 1px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+}
+.task-check.done { background: var(--success); border-color: var(--success); }
+.task-check.done::after { content: '✓'; color: white; font-size: 11px; }
+.task-label { font-size: 14px; color: var(--text); line-height: 1.5; cursor: pointer; }
+.task-label.done { color: var(--text3); text-decoration: line-through; }
+.task-delete { margin-left: auto; background: none; border: none; color: var(--text3); cursor: pointer; font-size: 16px; padding: 0 4px; flex-shrink: 0; }
+
+.add-task-row {
+  display: flex; gap: 8px;
+  padding: 12px 16px 0;
+}
+.add-task-input {
+  flex: 1;
+  background: var(--bg2);
+  border: 0.5px solid var(--border2);
+  border-radius: var(--r);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  padding: 10px 14px;
+  outline: none;
+}
+.add-task-input:focus { border-color: var(--accent); }
+.add-task-input::placeholder { color: var(--text3); }
+.btn-add {
+  background: var(--accent);
+  border: none;
+  border-radius: var(--r);
+  color: #0e0e0e;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 10px 16px;
+  cursor: pointer;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* PROJECTS */
+.project-card {
+  background: var(--bg2);
+  border: 0.5px solid var(--border);
+  border-radius: var(--r2);
+  margin: 0 16px 12px;
+  overflow: hidden;
+}
+.project-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 18px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.project-icon {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.project-icon svg { width: 18px; height: 18px; fill: none; stroke-width: 1.5; }
+.project-name { font-size: 15px; font-weight: 500; color: var(--text); }
+.project-sub { font-size: 12px; color: var(--text2); margin-top: 1px; }
+.project-chevron { margin-left: auto; color: var(--text3); font-size: 16px; transition: transform 0.2s; }
+.project-body {
+  display: none;
+  padding: 0 18px 16px;
+  border-top: 0.5px solid var(--border);
+}
+.project-body.open { display: block; }
+.project-notes {
+  font-size: 13px;
+  color: var(--text2);
+  line-height: 1.7;
+  margin: 12px 0;
+  white-space: pre-wrap;
+  min-height: 40px;
+}
+.project-notes.empty { color: var(--text3); font-style: italic; }
+.project-update-row { display: flex; gap: 8px; margin-top: 8px; }
+.project-input {
+  flex: 1;
+  background: var(--bg3);
+  border: 0.5px solid var(--border2);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  padding: 8px 12px;
+  outline: none;
+  resize: none;
+}
+.project-input:focus { border-color: var(--accent); }
+.project-input::placeholder { color: var(--text3); }
+.btn-save {
+  background: var(--bg3);
+  border: 0.5px solid var(--border2);
+  border-radius: 8px;
+  color: var(--accent);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  padding: 8px 14px;
+  cursor: pointer;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+}
+.ask-project-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--accent2);
+  border: 0.5px solid rgba(201,169,110,0.2);
+  border-radius: 8px;
+  color: var(--accent);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  padding: 10px 14px;
+  cursor: pointer;
+  width: 100%;
+  margin-top: 10px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* CHAT */
+.chat-screen { display: flex; flex-direction: column; height: 100vh; }
+.chat-header {
+  padding: 52px 20px 16px;
+  border-bottom: 0.5px solid var(--border);
+  flex-shrink: 0;
+}
+.chat-header-title { font-family: 'DM Serif Display', serif; font-size: 22px; }
+.chat-header-sub { font-size: 12px; color: var(--text2); margin-top: 2px; }
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 140px;
+}
+.msg {
+  max-width: 85%;
+  padding: 12px 14px;
+  border-radius: 14px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.msg.user {
+  background: var(--accent);
+  color: #0e0e0e;
+  align-self: flex-end;
+  border-radius: 14px 14px 4px 14px;
+}
+.msg.assistant {
+  background: var(--bg2);
+  border: 0.5px solid var(--border);
+  color: var(--text);
+  align-self: flex-start;
+  border-radius: 14px 14px 14px 4px;
+}
+.msg.loading-msg { color: var(--text3); font-style: italic; }
+.chat-input-area {
+  position: fixed;
+  bottom: 68px;
+  left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: 480px;
+  padding: 12px 16px;
+  background: var(--bg);
+  border-top: 0.5px solid var(--border);
+}
+.chat-row { display: flex; gap: 8px; align-items: flex-end; }
+.chat-textarea {
+  flex: 1;
+  background: var(--bg2);
+  border: 0.5px solid var(--border2);
+  border-radius: 12px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  padding: 10px 14px;
+  outline: none;
+  resize: none;
+  max-height: 100px;
+  min-height: 42px;
+  line-height: 1.5;
+}
+.chat-textarea:focus { border-color: var(--accent); }
+.chat-textarea::placeholder { color: var(--text3); }
+.mic-btn {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  border: 0.5px solid var(--border2);
+  background: var(--bg2);
+  color: var(--text2);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+  transition: all 0.2s;
+}
+.mic-btn.listening { background: var(--danger); border-color: var(--danger); color: white; }
+.mic-btn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.5; }
+.send-btn-chat {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: none;
+  color: #0e0e0e;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.send-btn-chat svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; }
+
+/* SETTINGS */
+.settings-screen { padding-bottom: 120px; }
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  border-bottom: 0.5px solid var(--border);
+}
+.setting-label { font-size: 14px; color: var(--text); }
+.setting-sub { font-size: 12px; color: var(--text2); margin-top: 2px; }
+.api-input {
+  width: 100%;
+  background: var(--bg2);
+  border: 0.5px solid var(--border2);
+  border-radius: var(--r);
+  color: var(--text);
+  font-family: 'DM Sans', monospace;
+  font-size: 12px;
+  padding: 10px 14px;
+  outline: none;
+  margin: 0 16px;
+  width: calc(100% - 32px);
+}
+.api-input:focus { border-color: var(--accent); }
+.btn-guardar {
+  display: block;
+  margin: 12px 16px 0;
+  width: calc(100% - 32px);
+  background: var(--accent);
+  border: none;
+  border-radius: var(--r);
+  color: #0e0e0e;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 12px;
+  cursor: pointer;
+}
+.saved-badge {
+  display: none;
+  font-size: 12px;
+  color: var(--success);
+  text-align: center;
+  margin-top: 8px;
+}
+
+/* MONTH GOALS */
+.goal-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 0.5px solid var(--border);
+}
+.goal-item:last-child { border-bottom: none; }
+.goal-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex-shrink: 0; margin-top: 6px; }
+.goal-text { font-size: 13px; color: var(--text); line-height: 1.5; }
+.goal-sub { font-size: 11px; color: var(--text2); margin-top: 2px; }
+
+/* REVIEW */
+.review-card {
+  background: var(--bg2);
+  border: 0.5px solid var(--border);
+  border-radius: var(--r2);
+  padding: 16px 18px;
+  margin: 0 16px 12px;
+}
+.review-label { font-size: 11px; color: var(--text3); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px; }
+.review-text { font-size: 14px; color: var(--text2); line-height: 1.7; }
+
+/* ANIMATIONS */
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+.card, .foco-card, .project-card { animation: fadeIn 0.3s ease both; }
+</style>
+</head>
+<body>
+
+<!-- HOME SCREEN -->
+<div class="screen active" id="screen-home">
+  <div class="header">
+    <p class="header-eyebrow" id="home-day">—</p>
+    <h1 class="header-title" id="home-greeting">Buenos días, Juan David.</h1>
+    <p class="header-sub" id="home-date">—</p>
+  </div>
+
+  <div style="height:20px"></div>
+
+  <div class="foco-card">
+    <div class="foco-dot"></div>
+    <p class="foco-text" id="foco-text">Cargando foco del día...</p>
+  </div>
+
+  <p class="section-title">Briefing de hoy</p>
+  <div class="card">
+    <span class="briefing-accent" id="briefing-badge">IA generando...</span>
+    <p class="briefing-text loading" id="briefing-text">Preparando tu briefing personalizado...</p>
+  </div>
+
+  <p class="section-title">Hábitos diarios</p>
+  <div class="habits-grid">
+    <div class="habit" onclick="toggleHabit(this,'gratitud')" id="h-gratitud">
+      <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+      <span>Agradecer a Dios</span>
+    </div>
+    <div class="habit" onclick="toggleHabit(this,'biblia')" id="h-biblia">
+      <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      <span>Biblia</span>
+    </div>
+    <div class="habit" onclick="toggleHabit(this,'lectura')" id="h-lectura">
+      <svg viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+      <span>Lectura</span>
+    </div>
+    <div class="habit" onclick="toggleHabit(this,'gym')" id="h-gym">
+      <svg viewBox="0 0 24 24"><path d="M6.5 6.5h11"/><path d="M6.5 17.5h11"/><path d="M3 9.5h2v5H3z"/><path d="M19 9.5h2v5h-2z"/><path d="M5 7.5v9"/><path d="M19 7.5v9"/></svg>
+      <span>Gym</span>
+    </div>
+    <div class="habit" onclick="toggleHabit(this,'trading')" id="h-trading">
+      <svg viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+      <span>Mercado NY</span>
+    </div>
+  </div>
+
+  <p class="section-title">Tareas del día — máx. 3</p>
+  <ul class="tasks-list" id="tasks-list">
+    <li style="padding:12px 0;font-size:13px;color:var(--text3);" id="task-placeholder">Añade hasta 3 tareas para hoy.</li>
+  </ul>
+  <div class="add-task-row">
+    <input class="add-task-input" id="task-input" type="text" placeholder="Nueva tarea..." maxlength="100" />
+    <button class="btn-add" onclick="addTask()">+ Añadir</button>
+  </div>
+
+  <p class="section-title">Metas de mayo</p>
+  <div class="card">
+    <div class="goal-item">
+      <div class="goal-dot"></div>
+      <div><p class="goal-text">Trading: +600$ este mes</p><p class="goal-sub">Ejecutar con disciplina en el mercado de Nueva York</p></div>
+    </div>
+    <div class="goal-item">
+      <div class="goal-dot"></div>
+      <div><p class="goal-text">Organización: sistema funcionando</p><p class="goal-sub">Semanas por bloque temático, sin dispersión de energía</p></div>
+    </div>
+    <div class="goal-item">
+      <div class="goal-dot"></div>
+      <div><p class="goal-text">Barbería: 2-3 clientes nuevos premium</p><p class="goal-sub">Atraer perfil de cliente de alto nivel en Ibiza</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- PROJECTS SCREEN -->
+<div class="screen" id="screen-proyectos">
+  <div class="header">
+    <p class="header-eyebrow">Proyectos activos</p>
+    <h1 class="header-title">¿Por dónde vamos?</h1>
+    <p class="header-sub">Actualiza el estado de cada proyecto</p>
+  </div>
+
+  <div style="height:16px"></div>
+
+  <div class="project-card" id="proj-barberia">
+    <div class="project-header" onclick="toggleProject('barberia')">
+      <div class="project-icon" style="background:rgba(201,169,110,0.1)">
+        <svg viewBox="0 0 24 24" style="stroke:var(--accent)"><path d="M6 3v12"/><path d="M18 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path d="M6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path d="M15 6l-9 9"/><path d="M18 3l-9 12.5"/></svg>
+      </div>
+      <div>
+        <p class="project-name">The Original Hause</p>
+        <p class="project-sub">Proyecto barbería premium</p>
+      </div>
+      <span class="project-chevron" id="chev-barberia">›</span>
+    </div>
+    <div class="project-body" id="body-barberia">
+      <p class="project-notes" id="notes-barberia">Sin notas aún. Actualiza el estado del proyecto.</p>
+      <div class="project-update-row">
+        <textarea class="project-input" id="input-barberia" placeholder="¿Qué avanzaste hoy?" rows="2"></textarea>
+        <button class="btn-save" onclick="saveNote('barberia')">Guardar</button>
+      </div>
+      <button class="ask-project-btn" onclick="askAboutProject('barberia','The Original Hause — proyecto barbería premium en Ibiza')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Hablar con el asistente sobre este proyecto →
+      </button>
+    </div>
+  </div>
+
+  <div class="project-card" id="proj-marca">
+    <div class="project-header" onclick="toggleProject('marca')">
+      <div class="project-icon" style="background:rgba(74,158,106,0.1)">
+        <svg viewBox="0 0 24 24" style="stroke:var(--success)"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+      </div>
+      <div>
+        <p class="project-name">Marca personal</p>
+        <p class="project-sub">Contenido — 2 videos en el año</p>
+      </div>
+      <span class="project-chevron" id="chev-marca">›</span>
+    </div>
+    <div class="project-body" id="body-marca">
+      <p class="project-notes" id="notes-marca">Sin notas aún. Actualiza el estado del proyecto.</p>
+      <div class="project-update-row">
+        <textarea class="project-input" id="input-marca" placeholder="¿Qué avanzaste hoy?" rows="2"></textarea>
+        <button class="btn-save" onclick="saveNote('marca')">Guardar</button>
+      </div>
+      <button class="ask-project-btn" onclick="askAboutProject('marca','Marca personal — contenido para Instagram y redes, The Original Hause Ibiza')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Hablar con el asistente sobre este proyecto →
+      </button>
+    </div>
+  </div>
+
+  <div class="project-card" id="proj-trading">
+    <div class="project-header" onclick="toggleProject('trading')">
+      <div class="project-icon" style="background:rgba(82,130,224,0.1)">
+        <svg viewBox="0 0 24 24" style="stroke:#5282e0"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+      </div>
+      <div>
+        <p class="project-name">Trading</p>
+        <p class="project-sub">Mercado NY — meta: +600$ en mayo</p>
+      </div>
+      <span class="project-chevron" id="chev-trading">›</span>
+    </div>
+    <div class="project-body" id="body-trading">
+      <p class="project-notes" id="notes-trading">Sin notas aún. Actualiza el estado del proyecto.</p>
+      <div class="project-update-row">
+        <textarea class="project-input" id="input-trading" placeholder="¿Cómo fue la sesión de hoy?" rows="2"></textarea>
+        <button class="btn-save" onclick="saveNote('trading')">Guardar</button>
+      </div>
+      <button class="ask-project-btn" onclick="askAboutProject('trading','Trading — mercado de Nueva York, recién empezando, meta de +600$ en mayo')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Hablar con el asistente sobre este proyecto →
+      </button>
+    </div>
+  </div>
+
+  <div class="project-card" id="proj-carnet">
+    <div class="project-header" onclick="toggleProject('carnet')">
+      <div class="project-icon" style="background:rgba(224,82,82,0.1)">
+        <svg viewBox="0 0 24 24" style="stroke:var(--danger)"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+      </div>
+      <div>
+        <p class="project-name">Carnet de conducir</p>
+        <p class="project-sub">En proceso</p>
+      </div>
+      <span class="project-chevron" id="chev-carnet">›</span>
+    </div>
+    <div class="project-body" id="body-carnet">
+      <p class="project-notes" id="notes-carnet">Sin notas aún. Actualiza el estado del proyecto.</p>
+      <div class="project-update-row">
+        <textarea class="project-input" id="input-carnet" placeholder="¿Qué avanzaste hoy?" rows="2"></textarea>
+        <button class="btn-save" onclick="saveNote('carnet')">Guardar</button>
+      </div>
+      <button class="ask-project-btn" onclick="askAboutProject('carnet','Carnet de conducir — en proceso, meta de terminarlo este año')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Hablar con el asistente sobre este proyecto →
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- CHAT SCREEN -->
+<div class="screen chat-screen" id="screen-chat">
+  <div class="chat-header">
+    <h1 class="chat-header-title">Asistente</h1>
+    <p class="chat-header-sub">Cercano, directo y enfocado en ti</p>
+  </div>
+  <div class="chat-messages" id="chat-messages">
+    <div class="msg assistant">Hola Juan David. Estoy aquí. ¿En qué te ayudo hoy?</div>
+  </div>
+  <div class="chat-input-area">
+    <div class="chat-row">
+      <button class="mic-btn" id="mic-btn" onclick="toggleMic()" title="Hablar">
+        <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+      </button>
+      <textarea class="chat-textarea" id="chat-input" placeholder="Escribe aquí..." rows="1"></textarea>
+      <button class="send-btn-chat" onclick="sendChat()">
+        <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS SCREEN -->
+<div class="screen settings-screen" id="screen-ajustes">
+  <div class="header">
+    <p class="header-eyebrow">Configuración</p>
+    <h1 class="header-title">Ajustes</h1>
+    <p class="header-sub">Tu clave de API y preferencias</p>
+  </div>
+  <div style="height:20px"></div>
+  <p class="section-title">Clave de API de Anthropic</p>
+  <input class="api-input" id="api-key-input" type="password" placeholder="sk-ant-..." />
+  <button class="btn-guardar" onclick="saveApiKey()">Guardar clave</button>
+  <p class="saved-badge" id="saved-badge">✓ Clave guardada correctamente</p>
+
+  <p class="section-title" style="margin-top:32px">Meta del año</p>
+  <div class="card">
+    <p style="font-size:14px;color:var(--text);line-height:1.7">X5 en economía, salud física, espiritualidad y relaciones.<br><br>Cada decisión, cada día, apunta a ese múltiplo.</p>
+  </div>
+
+  <p class="section-title">Semana estructurada</p>
+  <div class="card">
+    <div class="goal-item"><div class="goal-dot"></div><div><p class="goal-text">Lunes · Jueves</p><p class="goal-sub">Marca personal y contenido</p></div></div>
+    <div class="goal-item"><div class="goal-dot"></div><div><p class="goal-text">Martes</p><p class="goal-sub">Clientes, agenda y seguimiento</p></div></div>
+    <div class="goal-item"><div class="goal-dot"></div><div><p class="goal-text">Miércoles</p><p class="goal-sub">Trading y revisión de operaciones</p></div></div>
+    <div class="goal-item"><div class="goal-dot"></div><div><p class="goal-text">Viernes</p><p class="goal-sub">Carnet + proyecto barbería</p></div></div>
+    <div class="goal-item"><div class="goal-dot"></div><div><p class="goal-text">Sábado</p><p class="goal-sub">Familia, pareja, vida personal</p></div></div>
+    <div class="goal-item"><div class="goal-dot"></div><div><p class="goal-text">Domingo</p><p class="goal-sub">Revisión semanal + intención</p></div></div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="nav">
+  <button class="nav-btn active" id="nav-home" onclick="showScreen('home')">
+    <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    Inicio
+  </button>
+  <button class="nav-btn" id="nav-proyectos" onclick="showScreen('proyectos')">
+    <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+    Proyectos
+  </button>
+  <button class="nav-btn" id="nav-chat" onclick="showScreen('chat')">
+    <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    Asistente
+  </button>
+  <button class="nav-btn" id="nav-ajustes" onclick="showScreen('ajustes')">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    Ajustes
+  </button>
+</nav>
+
+<script>
+const DAYS = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+const MONTHS = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+const FOCO = {
+  0:'Revisión semanal + intención de la semana',
+  1:'Marca personal y contenido — The Original Hause',
+  2:'Clientes, agenda y seguimiento',
+  3:'Trading y revisión de operaciones',
+  4:'Marca personal y contenido — The Original Hause',
+  5:'Carnet de conducir + proyecto barbería',
+  6:'Familia, pareja y vida personal'
+};
+
+function getApiKey() { return localStorage.getItem('jd_api_key') || ''; }
+function saveApiKey() {
+  const val = document.getElementById('api-key-input').value.trim();
+  if (!val) return;
+  localStorage.setItem('jd_api_key', val);
+  const badge = document.getElementById('saved-badge');
+  badge.style.display = 'block';
+  setTimeout(() => badge.style.display = 'none', 2500);
+}
+
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  document.getElementById('nav-' + name).classList.add('active');
+}
+
+function initHome() {
+  const now = new Date();
+  const h = now.getHours();
+  const dow = now.getDay();
+  const greeting = h < 12 ? 'Buenos días' : h < 20 ? 'Buenas tardes' : 'Buenas noches';
+  document.getElementById('home-day').textContent = DAYS[dow].charAt(0).toUpperCase() + DAYS[dow].slice(1);
+  document.getElementById('home-greeting').textContent = greeting + ', Juan David.';
+  document.getElementById('home-date').textContent = now.getDate() + ' de ' + MONTHS[now.getMonth()] + ' de ' + now.getFullYear();
+  document.getElementById('foco-text').textContent = FOCO[dow];
+
+  const saved = JSON.parse(localStorage.getItem('jd_habits_' + now.toDateString()) || '{}');
+  Object.keys(saved).forEach(k => {
+    const el = document.getElementById('h-' + k);
+    if (el && saved[k]) el.classList.add('done');
+  });
+
+  renderTasks();
+  loadBriefing();
+}
+
+function toggleHabit(el, key) {
+  el.classList.toggle('done');
+  const now = new Date();
+  const stored = JSON.parse(localStorage.getItem('jd_habits_' + now.toDateString()) || '{}');
+  stored[key] = el.classList.contains('done');
+  localStorage.setItem('jd_habits_' + now.toDateString(), JSON.stringify(stored));
+}
+
+let tasks = JSON.parse(localStorage.getItem('jd_tasks_' + new Date().toDateString()) || '[]');
+function saveTasks() { localStorage.setItem('jd_tasks_' + new Date().toDateString(), JSON.stringify(tasks)); }
+function renderTasks() {
+  const list = document.getElementById('tasks-list');
+  list.innerHTML = '';
+  if (tasks.length === 0) {
+    list.innerHTML = '<li style="padding:12px 0;font-size:13px;color:var(--text3)">Añade hasta 3 tareas para hoy.</li>';
+    return;
+  }
+  tasks.forEach((t, i) => {
+    const li = document.createElement('li');
+    li.className = 'task-item';
+    li.innerHTML = `<div class="task-check ${t.done?'done':''}" onclick="toggleTask(${i})"></div><span class="task-label ${t.done?'done':''}" onclick="toggleTask(${i})">${t.text}</span><button class="task-delete" onclick="deleteTask(${i})">×</button>`;
+    list.appendChild(li);
+  });
+}
+function addTask() {
+  const input = document.getElementById('task-input');
+  const text = input.value.trim();
+  if (!text) return;
+  if (tasks.length >= 3) { input.placeholder = 'Máx. 3 tareas. Completa una antes.'; return; }
+  tasks.push({text, done: false});
+  saveTasks(); renderTasks();
+  input.value = ''; input.placeholder = 'Nueva tarea...';
+}
+function toggleTask(i) { tasks[i].done = !tasks[i].done; saveTasks(); renderTasks(); }
+function deleteTask(i) { tasks.splice(i, 1); saveTasks(); renderTasks(); }
+document.addEventListener('keydown', e => { if (e.target.id === 'task-input' && e.key === 'Enter') addTask(); });
+
+function toggleProject(key) {
+  const body = document.getElementById('body-' + key);
+  const chev = document.getElementById('chev-' + key);
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  chev.textContent = isOpen ? '›' : '˅';
+  if (!isOpen) loadProjectNotes(key);
+}
+function loadProjectNotes(key) {
+  const notes = localStorage.getItem('jd_proj_' + key);
+  const el = document.getElementById('notes-' + key);
+  if (notes) { el.textContent = notes; el.classList.remove('empty'); }
+  else { el.textContent = 'Sin notas aún. Actualiza el estado del proyecto.'; el.classList.add('empty'); }
+}
+function saveNote(key) {
+  const input = document.getElementById('input-' + key);
+  const text = input.value.trim();
+  if (!text) return;
+  const existing = localStorage.getItem('jd_proj_' + key) || '';
+  const now = new Date();
+  const dateStr = now.getDate() + '/' + (now.getMonth()+1) + ' — ';
+  const newNote = existing ? existing + '\n\n' + dateStr + text : dateStr + text;
+  localStorage.setItem('jd_proj_' + key, newNote);
+  input.value = '';
+  loadProjectNotes(key);
+}
+
+function askAboutProject(key, projectDesc) {
+  const notes = localStorage.getItem('jd_proj_' + key) || 'Sin notas registradas aún.';
+  const prompt = `Contexto del proyecto: ${projectDesc}. Historial de notas: ${notes}. Resúmeme en 2-3 frases dónde estamos con este proyecto y qué debería hacer ahora. Sé directo y concreto.`;
+  showScreen('chat');
+  sendChatMessage(prompt, `¿Por dónde vamos con "${projectDesc.split('—')[0].trim()}"?`);
+}
+
+const chatHistory = [];
+const SYSTEM = `Eres el asistente personal de Juan David, un barbero premium basado en Ibiza construyendo la marca "The Original Hause". Meta del año: X5 en economía, salud, espiritualidad y relaciones. Proyectos activos: barbería premium, marca personal (solo 2 videos en el año), trading en mercado NY (recién empezando), carnet de conducir. Hábitos diarios: gratitud a Dios, Biblia, lectura instructiva, gym, trading tarde. Estilo: cercano, directo, motivador sin ser falso. Respuestas concisas. Conoces a Juan David profundamente — no expliques lo básico, ve al grano.`;
+
+async function callClaude(userMsg) {
+  const key = getApiKey();
+  if (!key) return 'Primero guarda tu clave de API en Ajustes.';
+  chatHistory.push({role:'user', content: userMsg});
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key': key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body: JSON.stringify({model:'claude-sonnet-4-20250514', max_tokens:1000, system: SYSTEM, messages: chatHistory})
+    });
+    const data = await res.json();
+    if (data.error) return 'Error: ' + data.error.message;
+    const reply = data.content?.map(b => b.text||'').join('') || '—';
+    chatHistory.push({role:'assistant', content: reply});
+    return reply;
+  } catch(e) { return 'Error de conexión. Revisa tu clave de API.'; }
+}
+
+function appendMsg(text, role) {
+  const div = document.createElement('div');
+  div.className = 'msg ' + role;
+  div.textContent = text;
+  document.getElementById('chat-messages').appendChild(div);
+  div.scrollIntoView({behavior:'smooth'});
+  return div;
+}
+
+async function sendChatMessage(apiMsg, displayMsg) {
+  const userDiv = appendMsg(displayMsg || apiMsg, 'user');
+  const loadingDiv = appendMsg('...', 'assistant loading-msg');
+  const reply = await callClaude(apiMsg);
+  loadingDiv.textContent = reply;
+  loadingDiv.classList.remove('loading-msg');
+  speak(reply);
+}
+
+async function sendChat() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  await sendChatMessage(text);
+}
+
+document.addEventListener('keydown', e => {
+  if (e.target.id === 'chat-input' && e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault(); sendChat();
+  }
+});
+
+async function loadBriefing() {
+  const key = getApiKey();
+  if (!key) {
+    document.getElementById('briefing-text').textContent = 'Configura tu clave de API en Ajustes para activar el briefing.';
+    document.getElementById('briefing-text').classList.remove('loading');
+    document.getElementById('briefing-badge').textContent = 'Pendiente';
+    return;
+  }
+  const now = new Date();
+  const dow = now.getDay();
+  const dayName = DAYS[dow];
+  const foco = FOCO[dow];
+  const prompt = `Hoy es ${dayName} y el foco es: "${foco}". Escribe un briefing de 3-4 frases para Juan David: directo, motivador sin ser falso, que le diga exactamente en qué enfocarse hoy y por qué. Sin saludos, sin nombre al inicio. Solo el briefing.`;
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body: JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:300,system:SYSTEM,messages:[{role:'user',content:prompt}]})
+    });
+    const data = await res.json();
+    const text = data.content?.map(b=>b.text||'').join('').trim() || 'Enfócate. Un día, una cosa.';
+    document.getElementById('briefing-text').textContent = text;
+    document.getElementById('briefing-text').classList.remove('loading');
+    document.getElementById('briefing-badge').textContent = DAYS[dow].charAt(0).toUpperCase()+DAYS[dow].slice(1);
+  } catch(e) {
+    document.getElementById('briefing-text').textContent = 'Un día, un foco. Empieza.';
+    document.getElementById('briefing-text').classList.remove('loading');
+  }
+}
+
+// VOICE
+let recognition = null;
+let isListening = false;
+function toggleMic() {
+  if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+    alert('Tu navegador no soporta reconocimiento de voz. Usa Chrome.'); return;
+  }
+  if (isListening) { recognition.stop(); return; }
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recognition = new SR();
+  recognition.lang = 'es-ES';
+  recognition.interimResults = false;
+  recognition.onstart = () => { isListening = true; document.getElementById('mic-btn').classList.add('listening'); };
+  recognition.onresult = e => {
+    const text = e.results[0][0].transcript;
+    document.getElementById('chat-input').value = text;
+    sendChat();
+  };
+  recognition.onend = () => { isListening = false; document.getElementById('mic-btn').classList.remove('listening'); };
+  recognition.start();
+}
+
+function speak(text) {
+  if (!window.speechSynthesis) return;
+  const short = text.slice(0, 300);
+  const utt = new SpeechSynthesisUtterance(short);
+  utt.lang = 'es-ES';
+  utt.rate = 1.05;
+  utt.pitch = 1;
+  const voices = speechSynthesis.getVoices();
+  const spanish = voices.find(v => v.lang.startsWith('es') && v.name.toLowerCase().includes('google')) || voices.find(v => v.lang.startsWith('es'));
+  if (spanish) utt.voice = spanish;
+  speechSynthesis.speak(utt);
+}
+speechSynthesis.onvoiceschanged = () => {};
+
+const savedKey = localStorage.getItem('jd_api_key');
+if (savedKey) document.getElementById('api-key-input').value = savedKey;
+
+initHome();
+</script>
+</body>
+</html>
